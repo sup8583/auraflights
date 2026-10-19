@@ -27,7 +27,8 @@ form.addEventListener('submit',async e=>{
     if(!body.offers?.length){results.innerHTML='<article class="result"><div><div class="route">No offers returned</div><div class="meta">Try another date or route. Availability depends on the provider.</div></div></article>';return;}
     results.innerHTML='<div class="hint">Live offers from Amadeus · '+from+' → '+to+' · '+date.value+' · Prices and availability can change</div>'+body.offers.map(x=>'<article class="result"><div><div class="route">'+x.origin+' → '+x.destination+'</div><div class="meta">'+x.airline+' · '+(x.stops===0?'Non-stop':x.stops+' stop'+(x.stops===1?'':'s'))+' · '+(x.duration||'Duration unavailable')+(x.departureAt?' · Departs '+new Date(x.departureAt).toLocaleString():'')+'</div></div><div><div class="price">'+new Intl.NumberFormat('en-IN',{style:'currency',currency:x.currency||'INR',maximumFractionDigits:0}).format(x.price)+'</div><div class="tag">LIVE PROVIDER OFFER</div></div></article>').join('');
   }catch(err){
-    results.innerHTML='<article class="result"><div><div class="route">Live search not ready</div><div class="meta">'+String(err.message||'Please try again later.').replace(/[<>]/g,'')+'</div><div class="meta">The site will show live fares once the Amadeus API credentials are configured in Vercel.</div></div></article>';
-  }finally{button.disabled=false;button.textContent='Search live fares ↗';}
+    const googleUrl='https://www.google.com/travel/flights?q='+encodeURIComponent('Flights from '+from+' to '+to+' on '+date.value+' under INR '+(budget||'any budget'));
+    results.innerHTML='<article class="result"><div><div class="route">Live prices are not connected yet</div><div class="meta">You can still compare current options on Google Flights. AuraFlights does not receive live fares from a provider yet.</div></div><a class="btn" style="text-decoration:none;white-space:nowrap" href="'+googleUrl+'" target="_blank" rel="noopener noreferrer">Compare flights ↗</a></article>';
+  }finally{button.disabled=false;button.textContent='Search flights ↗';}
 });
 </script></body></html>
