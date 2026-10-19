@@ -8,6 +8,26 @@
 <section class="search"><form id="search"><div class="fields"><div class="field"><label for="from">FROM</label><input id="from" value="BLR" placeholder="City or airport" required></div><div class="field"><label for="to">TO</label><input id="to" value="DXB" placeholder="City or airport" required></div><div class="field"><label for="depart">DEPARTURE</label><input id="depart" type="date" required></div><div class="field"><label for="budget">MAX BUDGET (₹)</label><input id="budget" type="number" min="1000" step="500" value="25000"></div></div><div class="actions"><span class="hint">Sample fares only until live flight data is connected.</span><button class="btn" type="submit">Explore fares ↗</button></div></form></section><section id="results" class="results" aria-live="polite"></section>
 <section class="features"><article class="feature"><div style="font-size:23px">🗓️</div><b>Flexible date finder</b><p>Compare nearby travel dates to help find a better-value trip.</p></article><article class="feature"><div style="font-size:23px">💸</div><b>Anywhere under budget</b><p>Explore destination ideas around the amount you want to spend.</p></article><article class="feature"><div style="font-size:23px">🔔</div><b>Deal Radar</b><p>Price-drop notifications can be enabled when live pricing and alert services are connected.</p></article></section><footer>© 2026 AuraFlights · Search preview · Sample fares are illustrative, not live offers.</footer></main>
 <script>
-const form=document.getElementById('search'),results=document.getElementById('results'),date=document.getElementById('depart');const today=new Date();date.min=today.toISOString().slice(0,10);date.value=new Date(today.getTime()+14*86400000).toISOString().slice(0,10);
-form.addEventListener('submit',e=>{e.preventDefault();const from=document.getElementById('from').value.trim().toUpperCase(),to=document.getElementById('to').value.trim().toUpperCase(),budget=Number(document.getElementById('budget').value)||25000;const offers=[{airline:'Value Explorer',price:Math.round(budget*.62/100)*100,detail:'1 stop · flexible itinerary'},{airline:'Comfort Saver',price:Math.round(budget*.79/100)*100,detail:'1 stop · balanced travel time'},{airline:'Direct Choice',price:Math.round(budget*.96/100)*100,detail:'Non-stop · illustrative option'}].filter(x=>x.price<=budget).sort((a,b)=>a.price-b.price);results.innerHTML='<div class="hint">Sample results for '+from+' → '+to+' · '+date.value+' · Not live prices</div>'+(offers.length?offers.map(x=>'<article class="result"><div><div class="route">'+from+' → '+to+'</div><div class="meta">'+x.airline+' · '+x.detail+'</div></div><div><div class="price">₹'+x.price.toLocaleString('en-IN')+'</div><div class="tag">DEMO FARE</div></div></article>').join(''):'<article class="result">No sample fares under this budget. Increase your budget to preview results.</article>');});
+const form=document.getElementById('search'),results=document.getElementById('results'),date=document.getElementById('depart');
+const today=new Date();date.min=today.toISOString().slice(0,10);date.value=new Date(today.getTime()+14*86400000).toISOString().slice(0,10);
+form.addEventListener('submit',async e=>{
+  e.preventDefault();
+  const from=document.getElementById('from').value.trim().toUpperCase();
+  const to=document.getElementById('to').value.trim().toUpperCase();
+  const budget=Number(document.getElementById('budget').value)||0;
+  const button=form.querySelector('button[type="submit"]');
+  button.disabled=true;button.textContent='Searching live fares…';
+  results.innerHTML='<article class="result"><div><div class="route">Searching flight offers</div><div class="meta">Checking the live flight provider…</div></div></article>';
+  try{
+    const params=new URLSearchParams({origin:from,destination:to,departureDate:date.value,adults:'1',currencyCode:'INR'});
+    if(budget>0)params.set('maxPrice',String(Math.round(budget)));
+    const response=await fetch('/api/search?'+params.toString(),{headers:{Accept:'application/json'}});
+    const body=await response.json();
+    if(!response.ok)throw new Error(body.message||body.error||'Flight search failed.');
+    if(!body.offers?.length){results.innerHTML='<article class="result"><div><div class="route">No offers returned</div><div class="meta">Try another date or route. Availability depends on the provider.</div></div></article>';return;}
+    results.innerHTML='<div class="hint">Live offers from Amadeus · '+from+' → '+to+' · '+date.value+' · Prices and availability can change</div>'+body.offers.map(x=>'<article class="result"><div><div class="route">'+x.origin+' → '+x.destination+'</div><div class="meta">'+x.airline+' · '+(x.stops===0?'Non-stop':x.stops+' stop'+(x.stops===1?'':'s'))+' · '+(x.duration||'Duration unavailable')+(x.departureAt?' · Departs '+new Date(x.departureAt).toLocaleString():'')+'</div></div><div><div class="price">'+new Intl.NumberFormat('en-IN',{style:'currency',currency:x.currency||'INR',maximumFractionDigits:0}).format(x.price)+'</div><div class="tag">LIVE PROVIDER OFFER</div></div></article>').join('');
+  }catch(err){
+    results.innerHTML='<article class="result"><div><div class="route">Live search not ready</div><div class="meta">'+String(err.message||'Please try again later.').replace(/[<>]/g,'')+'</div><div class="meta">The site will show live fares once the Amadeus API credentials are configured in Vercel.</div></div></article>';
+  }finally{button.disabled=false;button.textContent='Search live fares ↗';}
+});
 </script></body></html>
