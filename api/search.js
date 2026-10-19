@@ -17,6 +17,7 @@ export default async function handler(req, res) {
   const origin = String(req.query.origin || "").trim().toUpperCase();
   const destination = String(req.query.destination || "").trim().toUpperCase();
   const departureDate = String(req.query.departureDate || "").trim();
+  const returnDate = String(req.query.returnDate || "").trim();
   const adults = Math.min(9, Math.max(1, Number.parseInt(req.query.adults || "1", 10) || 1));
   const maxPrice = Number.parseInt(req.query.maxPrice || "", 10);
   const currencyCode = String(req.query.currencyCode || "INR").trim().toUpperCase();
@@ -30,7 +31,7 @@ export default async function handler(req, res) {
   if (departureDate < new Date().toISOString().slice(0, 10)) {
     return res.status(400).json({ error: "Departure date must be today or later." });
   }
-  if (!/^[A-Z]{3}$/.test(currencyCode)) {
+  if (returnDate && (!/^\\d{4}-\\d{2}-\\d{2}$/.test(returnDate) || Number.isNaN(Date.parse(returnDate)) || returnDate < departureDate)) {\n    return res.status(400).json({ error: "Choose a valid return date on or after departure." });\n  }\n  if (!/^[A-Z]{3}$/.test(currencyCode)) {
     return res.status(400).json({ error: "Currency must be a three-letter code." });
   }
 
@@ -64,7 +65,7 @@ export default async function handler(req, res) {
       currencyCode,
       max: "20"
     });
-    if (Number.isFinite(maxPrice) && maxPrice > 0) params.set("maxPrice", String(maxPrice));
+    if (returnDate) params.set("returnDate", returnDate);\n    if (Number.isFinite(maxPrice) && maxPrice > 0) params.set("maxPrice", String(maxPrice));
 
     const offersResponse = await fetch(baseUrl + "/v2/shopping/flight-offers?" + params.toString(), {
       headers: { Authorization: "Bearer " + tokenBody.access_token }
