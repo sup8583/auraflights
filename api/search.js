@@ -31,7 +31,10 @@ export default async function handler(req, res) {
   if (departureDate < new Date().toISOString().slice(0, 10)) {
     return res.status(400).json({ error: "Departure date must be today or later." });
   }
-  if (returnDate && (!/^\\d{4}-\\d{2}-\\d{2}$/.test(returnDate) || Number.isNaN(Date.parse(returnDate)) || returnDate < departureDate)) {\n    return res.status(400).json({ error: "Choose a valid return date on or after departure." });\n  }\n  if (!/^[A-Z]{3}$/.test(currencyCode)) {
+  if (returnDate && (!/^\d{4}-\d{2}-\d{2}$/.test(returnDate) || Number.isNaN(Date.parse(returnDate)) || returnDate < departureDate)) {
+    return res.status(400).json({ error: "Choose a valid return date on or after departure." });
+  }
+  if (!/^[A-Z]{3}$/.test(currencyCode)) {
     return res.status(400).json({ error: "Currency must be a three-letter code." });
   }
 
@@ -65,7 +68,8 @@ export default async function handler(req, res) {
       currencyCode,
       max: "20"
     });
-    if (returnDate) params.set("returnDate", returnDate);\n    if (Number.isFinite(maxPrice) && maxPrice > 0) params.set("maxPrice", String(maxPrice));
+    if (returnDate) params.set("returnDate", returnDate);
+    if (Number.isFinite(maxPrice) && maxPrice > 0) params.set("maxPrice", String(maxPrice));
 
     const offersResponse = await fetch(baseUrl + "/v2/shopping/flight-offers?" + params.toString(), {
       headers: { Authorization: "Bearer " + tokenBody.access_token }
