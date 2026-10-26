@@ -180,8 +180,22 @@ form.addEventListener('submit',async e=>{
       const token = button.dataset.token;
 
       if (!token) {
+        const origin = document.getElementById('from')?.value.trim() || '';
+        const destination = document.getElementById('to')?.value.trim() || '';
+        const departure = document.getElementById('depart')?.value || '';
+        const returnDate = document.getElementById('returnDate')?.value || '';
+        const travelers = document.getElementById('travelers')?.value || '1';
+
+        const searchText = `Flights from ${origin} to ${destination} on ${departure}` +
+          (returnDate ? ` returning ${returnDate}` : '') +
+          ` for ${travelers} adult(s)`;
+
+        const url = 'https://www.google.com/travel/flights?q=' +
+          encodeURIComponent(searchText);
+
+        window.open(url, '_blank', 'noopener,noreferrer');
         panel.hidden = false;
-        panel.textContent = 'Booking links are unavailable for this offer. Try another flight.';
+        panel.textContent = 'Opened Google Flights to compare available fares. This is a route search, not a direct link to this exact offer.';
         return;
       }
 
