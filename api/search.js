@@ -64,6 +64,14 @@ export default async function handler(req, res) {
       params.set("return_date", returnDate);
     }
 
+    const departureToken = String(req.query.departureToken || "").trim();
+    if (departureToken) {
+      if (departureToken.length > 20000) {
+        return res.status(400).json({ error: "Invalid outbound flight selection." });
+      }
+      params.set("departure_token", departureToken);
+    }
+
     const response = await fetch("https://serpapi.com/search.json?" + params.toString());
     const body = await response.json();
 
@@ -79,13 +87,13 @@ export default async function handler(req, res) {
       ...(body.other_flights || [])
     ];
 
-    console.log("BOOKING TOKEN DIAGNOSTIC:", JSON.stringify(
-      rawOffers.slice(0, 2).map(offer => ({
-        keys: Object.keys(offer || {}),
-        hasBookingToken: Boolean(offer?.booking_token),
-        bookingTokenType: typeof offer?.booking_token
-      }))
-    ));
+    console.log("SERPAPI OFFER FIELD NAMES:", JSON.stringify({
+      topLevelKeys: Object.keys(body || {}),
+      firstOfferKeys: Object.keys(rawOffers[0] || {}),
+      firstFlightKeys: Object.keys(rawOffers[0]?.flights?.[0] || {}),
+      hasDepartureToken: Boolean(rawOffers[0]?.departure_token),
+      hasBookingToken: Boolean(rawOffers[0]?.booking_token)
+    }));
 
     const offers = rawOffers.map((offer, index) => {
       const flights = offer.flights || [];
@@ -116,7 +124,8 @@ export default async function handler(req, res) {
           airlineCode: f.airline || "",
           flightNumber: f.flight_number || ""
         })),
-        bookingToken: offer.booking_token || null
+        bookingToken: offer.booking_token || null,
+        departureToken: offer.departure_token || null
       };
     }).filter(Boolean).sort((a, b) => a.price - b.price);
 
