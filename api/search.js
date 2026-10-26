@@ -49,6 +49,7 @@ export default async function handler(req, res) {
   try {
     const params = new URLSearchParams({
       engine: "google_flights",
+      deep_search: "true",
       type: returnDate ? "1" : "2",
       departure_id: origin,
       arrival_id: destination,
