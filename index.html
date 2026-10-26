@@ -26,7 +26,7 @@
 .flight-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .flight-disclaimer{font-size:11px;color:var(--muted);line-height:1.5}
 .deal-link{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;background:linear-gradient(100deg,var(--cyan),#b7f4dc);color:#07111f;padding:11px 15px;border-radius:10px;font-size:13px;font-weight:800}
-.empty-state{border:1px solid var(--line);border-radius:15px;padding:24px;color:var(--muted);background:#101a30}
+.booking-panel{display:grid;gap:10px;padding:14px;background:#0b1325;border:1px solid var(--line);border-radius:12px}.booking-panel[hidden]{display:none}.booking-option-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line)}.booking-option-row:last-child{border-bottom:0}.booking-option-price{color:var(--cyan);font-weight:800;margin-top:5px}.booking-options-btn{border:0;cursor:pointer;font-family:inherit}.booking-options-btn:disabled{opacity:.6;cursor:wait}.empty-state{border:1px solid var(--line);border-radius:15px;padding:24px;color:var(--muted);background:#101a30}
 @media(max-width:560px){.flight-card{padding:14px}.flight-time{font-size:17px}.flight-price{font-size:21px}.flight-timeline{gap:6px}.results-toolbar>*{max-width:100%}}.result{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:17px 19px;background:#101a30;border:1px solid var(--line);border-radius:16px}.route{font-weight:750}.meta{color:var(--muted);font-size:13px;margin-top:5px}.price{font-size:22px;font-weight:800;color:var(--cyan);text-align:right}.tag{font-size:11px;color:#f6cf86;margin-top:5px;text-align:right}.features{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:54px 0}.feature{border:1px solid var(--line);background:#0d1629b8;border-radius:18px;padding:22px}.feature b{display:block;margin:12px 0 7px}.feature p{color:var(--muted);font-size:14px;line-height:1.55;margin:0}footer{padding:26px 0;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}@media(max-width:900px){.fields{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:720px){.fields{grid-template-columns:repeat(2,1fr)}.features{grid-template-columns:1fr}.hero{padding-top:52px}.result{align-items:flex-start}.actions{align-items:flex-start;flex-direction:column}.btn{width:100%}.pill{font-size:11px}}
 </style></head><body><main class="wrap"><nav class="nav"><div class="brand">✦ Aura<span>Flights</span></div><div class="pill">Explore smarter · Travel further</div></nav>
 <section class="hero"><div class="eyebrow">Your next trip starts here</div><h1>Less searching.<br><em>More going.</em></h1><p>Discover fares, explore flexible dates, and find a trip that fits your budget — all in one place.</p></section>
@@ -150,7 +150,7 @@ form.addEventListener('submit',async e=>{
     const googleQuery='Flights from '+from+' to '+to+' on '+date.value+(round?' returning '+returnDate.value:'')+' for '+adults+' adult(s)';
     const googleUrl='https://www.google.com/travel/flights?q='+encodeURIComponent(googleQuery);
     const airlines=[...new Set(body.offers.map(x=>x.airline||'Other'))].sort();
-    results.innerHTML='<div class="results-heading"><div><div class="eyebrow">LIVE FARE COMPARISON</div><h2>'+from+' <span style="color:var(--cyan)">→</span> '+to+'</h2><div class="results-subtitle">'+date.value+(round?' · Return '+returnDate.value:' · One way')+' · '+adults+' adult(s) · '+body.offers.length+' provider offers</div></div><div class="pill">Prices in INR · Provider sourced</div></div><div class="results-toolbar"><label for="sortOffers">Sort by</label><select id="sortOffers"><option value="price">Lowest price</option><option value="duration">Shortest duration</option><option value="departure">Earliest departure</option></select><label for="stopOffers">Stops</label><select id="stopOffers"><option value="all">Any stops</option><option value="0">Non-stop only</option><option value="1">1 stop maximum</option></select><label for="airlineOffers">Airline</label><select id="airlineOffers"><option value="all">All airlines</option>'+airlines.map(a=>'<option value="'+a.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'">'+a+'</option>').join('')+'</select></div><div class="results-subtitle" id="offerCount"></div><div id="flightCards" class="results"></div><div class="flight-disclaimer">Fares are returned by the search provider and can change. Confirm baggage, fare conditions, availability and final price with the seller before booking. “Compare booking options” opens a separate flight search; it is not a direct booking link for this specific fare.</div>';
+    results.innerHTML='<div class="results-heading"><div><div class="eyebrow">LIVE FARE COMPARISON</div><h2>'+from+' <span style="color:var(--cyan)">→</span> '+to+'</h2><div class="results-subtitle">'+date.value+(round?' · Return '+returnDate.value:' · One way')+' · '+adults+' adult(s) · '+body.offers.length+' provider offers</div></div><div class="pill">Prices in INR · Provider sourced</div></div><div class="results-toolbar"><label for="sortOffers">Sort by</label><select id="sortOffers"><option value="price">Lowest price</option><option value="duration">Shortest duration</option><option value="departure">Earliest departure</option></select><label for="stopOffers">Stops</label><select id="stopOffers"><option value="all">Any stops</option><option value="0">Non-stop only</option><option value="1">1 stop maximum</option></select><label for="airlineOffers">Airline</label><select id="airlineOffers"><option value="all">All airlines</option>'+airlines.map(a=>'<option value="'+a.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'">'+a+'</option>').join('')+'</select></div><div class="results-subtitle" id="offerCount"></div><div id="flightCards" class="results"></div><div class="flight-disclaimer">Fares are returned by the search provider and can change. Confirm baggage, fare conditions, availability and final price with the seller before booking. Booking providers are shown when available for the selected flight. Prices and availability may change.</div>';
     const cards=document.getElementById('flightCards');
     const drawOffers=()=>{
       const sort=document.getElementById('sortOffers').value,stop=document.getElementById('stopOffers').value,airline=document.getElementById('airlineOffers').value;
@@ -163,13 +163,99 @@ form.addEventListener('submit',async e=>{
         const stops=Number(x.stops)||0;
         const timeline=segments.length?'<div class="flight-timeline"><div><div class="flight-time">'+flightTime(x.departureAt)+'</div><div class="flight-airport">'+(x.origin||from)+' · '+flightDate(x.departureAt)+'</div></div><div class="flight-mid">'+(stops===0?'Non-stop':stops+' stop'+(stops===1?'':'s'))+'<div class="flight-line"></div>'+(x.duration||'Duration unavailable')+'</div><div style="text-align:right"><div class="flight-time">'+flightTime(x.arrivalAt)+'</div><div class="flight-airport">'+(x.destination||to)+' · '+flightDate(x.arrivalAt)+'</div></div></div>':'';
         const segmentDetails=segments.length>1?'<details><summary style="cursor:pointer;color:var(--cyan);font-size:12px">View connection details</summary><div class="segment-list" style="margin-top:10px">'+segments.map(seg=>'<div class="segment-row"><span>'+seg.from+' → '+seg.to+'</span><span>'+(seg.airlineCode||'Flight')+' '+(seg.flightNumber||'')+'</span><span>'+flightTime(seg.departureAt)+' – '+flightTime(seg.arrivalAt)+'</span></div>').join('')+'</div></details>':'';
-        return '<article class="flight-card"><div class="flight-top"><div><div class="airline-name">'+(x.airline||'Airline')+'</div><div class="flight-badge">'+(stops===0?'Non-stop journey':stops+' stop'+(stops===1?'':'s'))+' · Live provider offer</div></div><div><div class="flight-price">'+money(x)+'</div><div class="flight-price-caption">'+(round?'Provider fare for selected return-trip search':'Provider fare · One way')+'</div></div></div>'+timeline+segmentDetails+'<div class="flight-actions"><div class="flight-disclaimer">Option '+(i+1)+' · Verify final fare with seller</div><a class="deal-link" href="'+googleUrl+'" target="_blank" rel="noopener noreferrer">Compare booking options ↗</a></div></article>';
+        return '<article class="flight-card"><div class="flight-top"><div><div class="airline-name">'+(x.airline||'Airline')+'</div><div class="flight-badge">'+(stops===0?'Non-stop journey':stops+' stop'+(stops===1?'':'s'))+' · Live provider offer</div></div><div><div class="flight-price">'+money(x)+'</div><div class="flight-price-caption">'+(round?'Provider fare for selected return-trip search':'Provider fare · One way')+'</div></div></div>'+timeline+segmentDetails+'<div class="flight-actions"><div class="flight-disclaimer">Option '+(i+1)+' · Verify final fare with seller</div><button class="deal-link booking-options-btn" type="button" data-token="'+String(x.bookingToken||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'">See booking sites ↗</button></div><div class="booking-panel" hidden></div></article>';
       }).join('');
     };
     document.getElementById('sortOffers').addEventListener('change',drawOffers);
     document.getElementById('stopOffers').addEventListener('change',drawOffers);
     document.getElementById('airlineOffers').addEventListener('change',drawOffers);
     drawOffers();
+
+    cards.addEventListener('click', async event => {
+      const button = event.target.closest('.booking-options-btn');
+      if (!button) return;
+
+      const card = button.closest('.flight-card');
+      const panel = card.querySelector('.booking-panel');
+      const token = button.dataset.token;
+
+      if (!token) {
+        panel.hidden = false;
+        panel.textContent = 'Booking links are unavailable for this offer. Try another flight.';
+        return;
+      }
+
+      if (!panel.hidden) {
+        panel.hidden = true;
+        return;
+      }
+
+      panel.hidden = false;
+      panel.textContent = 'Finding booking providers for this flight…';
+      button.disabled = true;
+
+      try {
+        const query = new URLSearchParams({
+          bookingToken: token,
+          currencyCode: 'INR'
+        });
+        const response = await fetch('/api/booking?' + query.toString(), {
+          headers: { Accept: 'application/json' }
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Booking lookup failed.');
+        }
+
+        panel.replaceChildren();
+
+        if (!data.options || !data.options.length) {
+          panel.textContent = data.message || 'No direct booking providers were returned for this flight.';
+          return;
+        }
+
+        data.options.forEach(option => {
+          const row = document.createElement('div');
+          row.className = 'booking-option-row';
+
+          const info = document.createElement('div');
+          const name = document.createElement('strong');
+          name.textContent = option.name;
+          info.appendChild(name);
+
+          if (option.price !== null && option.price !== undefined) {
+            const price = document.createElement('div');
+            price.className = 'booking-option-price';
+            price.textContent = new Intl.NumberFormat('en-IN', {
+              style: 'currency',
+              currency: option.currency || 'INR',
+              maximumFractionDigits: 0
+            }).format(option.price);
+            info.appendChild(price);
+          } else {
+            const note = document.createElement('div');
+            note.className = 'flight-disclaimer';
+            note.textContent = 'Check final price with provider';
+            info.appendChild(note);
+          }
+
+          const link = document.createElement('a');
+          link.className = 'deal-link';
+          link.href = option.url;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.textContent = 'Continue ↗';
+
+          row.append(info, link);
+          panel.appendChild(row);
+        });
+      } catch (error) {
+        panel.textContent = error.message || 'Unable to load booking providers. Please try again.';
+      } finally {
+        button.disabled = false;
+      }
+    });
   }catch(err){
     const query='Flights from '+from+' to '+to+' on '+date.value+(round?' returning '+returnDate.value:'')+' for '+adults+' adult(s)';
     const googleUrl='https://www.google.com/travel/flights?q='+encodeURIComponent(query);
