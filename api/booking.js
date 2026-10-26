@@ -1,3 +1,4 @@
+
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
 
@@ -45,59 +46,85 @@ export default async function handler(req, res) {
       });
     }
 
-    const raw = Array.isArray(body.booking_options)
+    const rawOptions = Array.isArray(body.booking_options)
       ? body.booking_options
       : Array.isArray(body.booking_options?.options)
         ? body.booking_options.options
         : [];
 
-    const seen = new Set();
+    const candidates = [];
 
-    const options = raw.map(item => {
-      const candidates = [
+    for (const item of rawOptions) {
+      const together = item.together || {};
+      const request = together.booking_request || item.booking_request || {};
+
+      const urls = [
         item.url,
         item.booking_url,
         item.link,
         item.redirect_link,
-        item.booking_request?.url,
-        item.booking_request?.link
+        together.url,
+        together.booking_url,
+        together.link,
+        request.url,
+        request.link
       ];
 
-      const url = candidates.find(value => {
+      const url = urls.find(value => {
         try {
-          return typeof value === "string" &&
-            new URL(value).protocol === "https:";
+          const parsed = new URL(value);
+          return typeof value === "string" && parsed.protocol === "https:";
         } catch {
           return false;
         }
       });
 
-      if (!url || seen.has(url)) return null;
-      seen.add(url);
+      if (!url) continue;
 
-      const rawPrice = item.price ?? item.price_value ?? item.total_price;
-      const parsedPrice = Number(String(rawPrice ?? "").replace(/[^0-9.]/g, ""));
+      const rawPrice =
+        item.price ??
+        item.price_value ??
+        item.total_price ??
+        together.price ??
+        together.price_value;
 
-      return {
+      const parsedPrice = Number(
+        String(rawPrice ?? "").replace(/[^0-9.]/g, "")
+      );
+
+      candidates.push({
         name: String(
-          item.book_with || item.provider || item.name || item.title || "Booking provider"
+          item.book_with ||
+          item.provider ||
+          item.name ||
+          item.title ||
+          together.book_with ||
+          together.provider ||
+          "Booking provider"
         ).slice(0, 120),
         url,
         price: Number.isFinite(parsedPrice) && parsedPrice > 0
           ? parsedPrice
           : null,
         currency: String(item.currency || currency).slice(0, 3)
-      };
-    }).filter(Boolean).sort(
-      (a, b) => (a.price ?? Infinity) - (b.price ?? Infinity)
-    );
+      });
+    }
+
+    const seen = new Set();
+    const options = candidates
+      .filter(option => {
+        if (seen.has(option.url)) return false;
+        seen.add(option.url);
+        return true;
+      })
+      .sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity));
 
     return res.status(200).json({
       count: options.length,
       options,
       message: options.length
         ? undefined
-        : "No direct booking links were returned for this flight."
+        : "The provider returned no direct booking links for this flight."
     });
   } catch (error) {
     console.error("Booking lookup error:", error.message);
