@@ -78,6 +78,14 @@ export default async function handler(req, res) {
       ...(body.other_flights || [])
     ];
 
+    console.log("BOOKING TOKEN DIAGNOSTIC:", JSON.stringify(
+      rawOffers.slice(0, 2).map(offer => ({
+        keys: Object.keys(offer || {}),
+        hasBookingToken: Boolean(offer?.booking_token),
+        bookingTokenType: typeof offer?.booking_token
+      }))
+    ));
+
     const offers = rawOffers.map((offer, index) => {
       const flights = offer.flights || [];
       const first = flights[0];
